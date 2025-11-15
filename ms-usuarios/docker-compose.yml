@@ -1,9 +1,9 @@
-name: ms-usuarios
 services:
   ms-usuarios:
     profiles: ["app"]
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: ms-usuarios
     env_file: .env
     ports:

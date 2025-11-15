@@ -1,11 +1,19 @@
-import express from "express";
+const express = require('express');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
 
-app.get("/health", (_req, res) => res.status(200).json({status: "UP"}));
+app.use(cors());
+app.use(express.json());
 
-// Placeholder routing. In production, proxy/route to microservices by service name on the same Docker network.
-app.get("/", (_req, res) => res.send("Gateway API is running. Add routes / proxy here."));
+app.use('/auth', require('./routes/auth'));
+app.use('/usuarios', require('./routes/usuarios'));
+app.use('/cursos', require('./routes/cursos'));
 
-app.listen(PORT, () => console.log(`[gateway] listening on port ${PORT}`));
+app.get('/', (req, res) => {
+  res.json({ message: "Gateway ativo e funcionando." });
+});
+
+app.listen(8080, () => {
+  console.log("Gateway rodando na porta 8080");
+});

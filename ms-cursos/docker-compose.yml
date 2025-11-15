@@ -1,9 +1,9 @@
-name: ms-cursos
 services:
   ms-cursos:
     profiles: ["app"]
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: ms-cursos
     env_file: .env
     ports:

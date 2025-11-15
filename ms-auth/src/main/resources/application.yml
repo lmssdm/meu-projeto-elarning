@@ -1,0 +1,29 @@
+server:
+  port: 8080 # Porta interna do contêiner
+
+spring:
+  application:
+    name: ms-auth
+
+  # Configuração para o MongoDB
+  data:
+    mongodb:
+      # Conecta no serviço 'mongo-auth' na porta 27017
+      # O nome 'mongo-auth' é o nome do serviço no docker-compose.yml
+      # O 'autenticacao_db' é o nome do banco que vamos usar (pode ser qualquer nome)
+      uri: mongodb://mongo-auth:27017/autenticacao_db 
+
+  # Configurações de E-mail e JWT (copiadas do seu projeto antigo)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+jwt:
+  secret: ${JWT_SECRET}

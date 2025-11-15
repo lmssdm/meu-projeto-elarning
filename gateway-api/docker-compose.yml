@@ -1,16 +1,43 @@
-name: gateway-api
+version: '3.8'
+
 services:
+
   gateway:
-    build:
-      context: .
+    build: ./gateway
     container_name: gateway
-    env_file: .env
     ports:
-      - "${GATEWAY_PORT:-8080}:8080"
-    restart: unless-stopped
+      - "8080:8080"
+    depends_on:
+      - ms-auth
+      - ms-usuarios
+      - ms-cursos
     networks:
-      - elearning-net
+      - elarning
+
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    ports:
+      - "3001:3001"
+    networks:
+      - elarning
+
+  ms-usuarios:
+    build: ./ms-usuarios
+    container_name: ms-usuarios
+    ports:
+      - "3002:3002"
+    networks:
+      - elarning
+
+  ms-cursos:
+    build: ./ms-cursos
+    container_name: ms-cursos
+    ports:
+      - "3003:3003"
+    networks:
+      - elarning
 
 networks:
-  elearning-net:
-    external: true
+  elarning:
+    driver: bridge

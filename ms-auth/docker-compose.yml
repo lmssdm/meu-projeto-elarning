@@ -1,9 +1,9 @@
-name: ms-auth
 services:
   ms-auth:
     profiles: ["app"]
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: ms-auth
     env_file: .env
     ports:
