@@ -4,7 +4,7 @@ public class FuncionarioCadastroDTO {
     
     private String cpf;
     private String nome;
-    private String email;
+    private String email; // <--- ADICIONE ESTA LINHA
     private String departamento;
     private String cargo;
 
@@ -24,6 +24,7 @@ public class FuncionarioCadastroDTO {
         this.nome = nome;
     }
 
+    // --- ADICIONE ESTES GETTERS E SETTERS ---
     public String getEmail() {
         return email;
     }
@@ -31,6 +32,7 @@ public class FuncionarioCadastroDTO {
     public void setEmail(String email) {
         this.email = email;
     }
+    // --- FIM DA ADIÇÃO ---
 
     public String getDepartamento() {
         return departamento;

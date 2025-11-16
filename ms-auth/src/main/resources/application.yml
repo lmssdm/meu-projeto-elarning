@@ -27,3 +27,9 @@ spring:
             enable: true
 jwt:
   secret: ${JWT_SECRET}
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest

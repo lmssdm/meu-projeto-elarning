@@ -8,7 +8,7 @@ services:
     container_name: gateway-api
     env_file: ./gateway-api/.env
     ports:
-      - "${GATEWAY_HTTP_PORT:-8080}:8080" 
+      - "${GATEWAY_HTTP_PORT:-8080}:8080"
     networks:
       - elearning-net
     depends_on:
@@ -32,6 +32,8 @@ services:
     depends_on:
       mongo-auth:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy # <-- CORREÇÃO: Espera o RabbitMQ estar saudável
     networks:
       - elearning-net
 
@@ -66,6 +68,8 @@ services:
     depends_on:
       db-usuarios:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy # <-- CORREÇÃO: Espera o RabbitMQ estar saudável
     networks:
       - elearning-net
 
@@ -118,7 +122,29 @@ services:
     networks:
       - elearning-net
 
-# --- MS Avaliações (DESABILITADO TEMPORARIAMENTE) ---
+  # --- RabbitMQ (Mensageria) ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Porta para os microsserviços
+      - "15672:15672" # Porta para o Admin UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - elearning-net
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    # --- Healthcheck para garantir que o RabbitMQ esteja pronto ---
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "node_health_check"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+# --- SERVIÇOS DESABILITADOS (FALTA CÓDIGO FONTE) ---
 #  ms-avaliacoes:
 #    profiles: ["app"]
 #    build:
@@ -127,139 +153,52 @@ services:
 #    env_file: ./ms-avaliacoes/.env
 #    ports:
 #      - "${MS_AVALIACOES_HTTP_PORT:-8103}:8080"
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://db-avaliacoes:5432/${POSTGRES_DB}
-#      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-#      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-#    depends_on:
-#      db-avaliacoes:
-#        condition: service_healthy
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 #
 #  db-avaliacoes:
 #    image: postgres:15
-#    container_name: db-avaliacoes
-#    env_file: ./ms-avaliacoes/.env
-#    volumes:
-#      - ms-avaliacoes_pgdata:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 
-# --- MS Progresso (DESABILITADO TEMPORARIAMENTE) ---
 #  ms-progresso:
 #    profiles: ["app"]
 #    build:
 #      context: ./ms-progresso
-#    container_name: ms-progresso
-#    env_file: ./ms-progresso/.env
-#    ports:
-#      - "${MS_PROGRESSO_HTTP_PORT:-8104}:8080"
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://db-progresso:5432/${POSTGRES_DB}
-#      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-#      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-#    depends_on:
-#      db-progresso:
-#        condition: service_healthy
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 #
 #  db-progresso:
 #    image: postgres:15
-#    container_name: db-progresso
-#    env_file: ./ms-progresso/.env
-#    volumes:
-#      - ms-progresso_pgdata:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 
-# --- MS Gamificação (DESABILITADO TEMPORARIAMENTE) ---
 #  ms-gamificacao:
 #    profiles: ["app"]
 #    build:
 #      context: ./ms-gamificacao
-#    container_name: ms-gamificacao
-#    env_file: ./ms-gamificacao/.env
-#    ports:
-#      - "${MS_GAMIFICACAO_HTTP_PORT:-8105}:8080"
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://db-gamif:5432/${POSTGRES_DB}
-#      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-#      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-#    depends_on:
-#      db-gamif:
-#        condition: service_healthy
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 #
 #  db-gamif:
 #    image: postgres:15
-#    container_name: db-gamif
-#    env_file: ./ms-gamificacao/.env
-#    volumes:
-#      - ms-gamificacao_pgdata:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 
-# --- MS Notificações (DESABILITADO TEMPORARIAMENTE) ---
 #  ms-notificacoes:
 #    profiles: ["app"]
 #    build:
 #      context: ./ms-notificacoes
-#    container_name: ms-notificacoes
-#    env_file: ./ms-notificacoes/.env
-#    ports:
-#      - "${MS_NOTIFICACOES_HTTP_PORT:-8106}:8080"
-#    environment:
-#      SPRING_PROFILES_ACTIVE: docker
-#      SPRING_DATA_MONGODB_URI: mongodb://mongo-notif:27017/${MONGO_DB}
-#    depends_on:
-#      mongo-notif:
-#        condition: service_healthy
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 #
 #  mongo-notif:
 #    image: mongo:7
-#    container_name: mongo-notif
-#    volumes:
-#      - ms-notificacoes_mongodata:/data/db
-#    healthcheck:
-#      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 })"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 20
-#    networks:
-#      - elearning-net
+#    ... (restante da configuração)
 
 # --- Volumes Globais ---
 volumes:
   ms-auth_mongodata:
   ms-usuarios_pgdata:
   ms-cursos_pgdata:
-#  ms-avaliacoes_pgdata: # Comentado
-#  ms-progresso_pgdata: # Comentado
-#  ms-gamificacao_pgdata: # Comentado
-#  ms-notificacoes_mongodata: # Comentado
+  rabbitmq-data: # Volume para o RabbitMQ
+  # ms-avaliacoes_pgdata:
+  # ms-progresso_pgdata:
+  # ms-gamificacao_pgdata:
+  # ms-notificacoes_mongodata:
 
 # --- Rede Externa ---
 networks:
