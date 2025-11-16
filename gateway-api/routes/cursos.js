@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Caminho do microserviço de cursos
-const CURSOS_URL = 'http://ms-cursos:3003';
+const CURSOS_URL = 'http://ms-cursos:8080'; // ⚠️ MUDANÇA AQUI
 
 router.get('/', async (req, res) => {
   try {

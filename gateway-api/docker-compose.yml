@@ -1,43 +1,17 @@
-version: '3.8'
-
 services:
-
-  gateway:
-    build: ./gateway
-    container_name: gateway
+  gateway-api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gateway-api
+    env_file: .env
     ports:
-      - "8080:8080"
-    depends_on:
-      - ms-auth
-      - ms-usuarios
-      - ms-cursos
+      # A porta 8080 do host mapeia para a 8080 interna do Node (definida no server.js)
+      - "${GATEWAY_HTTP_PORT:-8080}:8080" 
     networks:
-      - elarning
-
-  ms-auth:
-    build: ./ms-auth
-    container_name: ms-auth
-    ports:
-      - "3001:3001"
-    networks:
-      - elarning
-
-  ms-usuarios:
-    build: ./ms-usuarios
-    container_name: ms-usuarios
-    ports:
-      - "3002:3002"
-    networks:
-      - elarning
-
-  ms-cursos:
-    build: ./ms-cursos
-    container_name: ms-cursos
-    ports:
-      - "3003:3003"
-    networks:
-      - elarning
+      - elearning-net
 
 networks:
-  elarning:
-    driver: bridge
+  elearning-net:
+    external: true

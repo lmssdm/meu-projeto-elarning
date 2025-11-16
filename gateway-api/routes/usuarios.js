@@ -3,7 +3,7 @@ const axios = require('axios');
 const router = express.Router();
 
 // Caminho do microserviço de usuários
-const USERS_URL = 'http://ms-usuarios:3002';
+const USERS_URL = 'http://ms-usuarios:8080'; // ⚠️ MUDANÇA AQUI
 
 router.get('/', async (req, res) => {
   try {
