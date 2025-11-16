@@ -1,0 +1,14 @@
+# Este arquivo SÓ é lido quando o SPRING_PROFILES_ACTIVE=docker
+
+spring:
+  # Aponta para o contêiner mongo-auth
+  data:
+    mongodb:
+      uri: mongodb://mongo-auth:27017/autenticacao_db 
+
+# Aponta para o contêiner rabbitmq
+rabbitmq:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest

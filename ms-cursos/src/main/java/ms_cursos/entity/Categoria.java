@@ -1,6 +1,6 @@
 package ms_cursos.entity;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.Column; // Importe esta classe
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,14 +14,18 @@ public class Categoria {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    // --- CORREÇÃO AQUI ---
+    @Column(unique = true) // Adicione esta linha
     private String codigo; // Ex: TECH, LIDER
+    // --- FIM DA CORREÇÃO ---
+
     private String nome;
     private String descricao;
     
     @Column(name = "cor_hex")
     private String corHex;
 
-    // Getters e Setters
+    // Getters e Setters... (o resto do arquivo fica igual)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getCodigo() { return codigo; }

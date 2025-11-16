@@ -1,20 +1,21 @@
 package elarning.ms_usuarios.service;
 
-// --- IMPORTS ADICIONADOS ---
-import elarning.ms_usuarios.config.RabbitMQConfig;
-import elarning.ms_usuarios.dto.UsuarioEmailDTO;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-// --- FIM DOS IMPORTS ADICIONADOS ---
+import java.time.LocalDateTime;
 
-import elarning.ms_usuarios.dto.FuncionarioCadastroDTO;
-import elarning.ms_usuarios.entity.Funcionario;
-import elarning.ms_usuarios.exception.FuncionarioJaExisteException;
-import elarning.ms_usuarios.repository.FuncionarioRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import elarning.ms_usuarios.config.RabbitMQConfig;
+import elarning.ms_usuarios.dto.FuncionarioCadastroDTO;
+import elarning.ms_usuarios.dto.FuncionarioDashboardDTO;
+import elarning.ms_usuarios.dto.UsuarioEmailDTO;
+import elarning.ms_usuarios.entity.Departamento;
+import elarning.ms_usuarios.entity.Funcionario;
+import elarning.ms_usuarios.exception.FuncionarioJaExisteException;
+import elarning.ms_usuarios.repository.DepartamentoRepository;
+import elarning.ms_usuarios.repository.FuncionarioRepository;
 
 @Service
 public class FuncionarioService {
@@ -23,48 +24,64 @@ public class FuncionarioService {
     private FuncionarioRepository funcionarioRepo;
 
     @Autowired
+    private DepartamentoRepository deptoRepo; 
+
+    @Autowired
     private ModelMapper mapper;
 
-    // <--- ADICIONAR (Injeta o template do RabbitMQ) ---
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    // --- FIM DA ADIÇÃO ---
 
+    // Lógica de registro (R01) - (Sem alterações, já estava correta)
     public void registrar(FuncionarioCadastroDTO dto) {
         
-        // Validação (já estava correta)
         if (funcionarioRepo.findByCpf(dto.getCpf()).isPresent() || 
             funcionarioRepo.findByEmail(dto.getEmail()).isPresent()) {
             throw new FuncionarioJaExisteException("CPF ou E-mail já cadastrado.");
         }
 
-        Funcionario funcionario = mapper.map(dto, Funcionario.class);
+        Departamento depto = deptoRepo.findByCodigo(dto.getDepartamento())
+                .orElseThrow(() -> new RuntimeException("Departamento com código '" + dto.getDepartamento() + "' não encontrado."));
 
-        // Define os padrões do R01
+        Funcionario funcionario = mapper.map(dto, Funcionario.class);
+        funcionario.setDepartamentoId(depto.getId()); 
         funcionario.setXpTotal(0);
         funcionario.setNivel("Iniciante");
         funcionario.setStatus("ATIVO");
         funcionario.setDataCadastro(LocalDateTime.now());
 
-        // 1. Salva o funcionário no banco de dados (já estava correto)
         funcionarioRepo.save(funcionario);
 
-        // <--- ADICIONAR (Bloco de envio para o RabbitMQ) ---
         try {
-            // 2. Cria o objeto da mensagem (o DTO que criamos)
             UsuarioEmailDTO emailDTO = new UsuarioEmailDTO(funcionario.getNome(), funcionario.getEmail());
-            
-            // 3. Envia a mensagem para a fila específica
             rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_USUARIO_NOVO, emailDTO);
-            
-            // Log para sabermos que funcionou
             System.out.println("Mensagem de novo usuário enviada para a fila: " + emailDTO.getEmail());
-
         } catch (Exception e) {
-            // Se o RabbitMQ falhar, o cadastro não é desfeito (importante!)
             System.err.println("ERRO AO ENVIAR MENSAGEM PARA RABBITMQ: " + e.getMessage());
             e.printStackTrace();
         }
-        // --- FIM DA ADIÇÃO ---
+    }
+
+    // --- NOVO MÉTODO ADICIONADO ---
+    /**
+     * Busca os dados para o Dashboard do Funcionário (R03)
+     */
+    public FuncionarioDashboardDTO getDashboard(String email) {
+        Funcionario f = funcionarioRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado: " + email));
+
+        // Mapeia os dados básicos do R03
+        FuncionarioDashboardDTO dto = new FuncionarioDashboardDTO();
+        dto.setNome(f.getNome());
+        dto.setCargo(f.getCargo());
+        dto.setXpTotal(f.getXpTotal());
+        dto.setNivel(f.getNivel());
+        
+        // TODO: Futuramente (R03), você precisará chamar
+        // o ms-progresso para buscar "cursos em andamento"
+        // e o ms-gamificacao para buscar "ranking".
+        // Por enquanto, isso atende o básico.
+        
+        return dto;
     }
 }

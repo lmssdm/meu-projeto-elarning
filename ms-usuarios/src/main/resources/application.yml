@@ -1,22 +1,35 @@
 server:
-  port: 8080 # Porta interna do contêiner
+  port: 8080 
 
 spring:
   application:
-    name: ms-usuarios # Nome do microsserviço
+    name: ms-usuarios 
 
   datasource:
-    # Aponta para o serviço 'db-usuarios' no docker-compose.yml
     url: jdbc:postgresql://db-usuarios:5432/elarning_usuarios_db 
-    username: ${POSTGRES_USER}   # (Vem do docker-compose)
-    password: ${POSTGRES_PASSWORD} # (Vem do docker-compose)
+    username: ${POSTGRES_USER}   
+    password: ${POSTGRES_PASSWORD} 
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      # 'update' cria/altera as tabelas automaticamente.
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    # Esta linha diz: "Rode o data.sql DEPOIS que o Hibernate criar as tabelas"
+    defer-datasource-initialization: true
+
+  # --- CORREÇÃO ADICIONADA AQUI ---
+  # Esta linha diz: "Rode os scripts (data.sql) MESMO em um banco real (PostgreSQL)"
+  sql:
+    init:
+      mode: always
+  # --- FIM DA CORREÇÃO ---
+
+  rabbitmq:
+    host: rabbitmq   
+    port: 5672       
+    username: guest  
+    password: guest
